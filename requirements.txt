@@ -1,0 +1,8 @@
+Flask
+gunicorn
+Flask-Cors
+Flask-RESTful
+Flask-SQLAlchemy
+firebase_admin
+python-dotenv
+pg8000
