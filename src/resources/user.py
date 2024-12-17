@@ -1,6 +1,7 @@
 import secrets
 from flask import g
 from flask_restful import Resource, reqparse
+from werkzeug.security import generate_password_hash
 from src.extensions import db
 from src.models import User
 
@@ -20,10 +21,14 @@ class UserResource(Resource):
         args = parser.parse_args()
         account = args["account"]
         name = args["name"]
+        password = args["password"]
 
         user_id = secrets.token_urlsafe(21)
+        hashed_password = generate_password_hash(password)
 
-        new_user = User(user_id=user_id, account=account, name=name)
+        new_user = User(
+            user_id=user_id, account=account, name=name, password=hashed_password
+        )
 
         db.session.add(new_user)
         db.session.commit()
