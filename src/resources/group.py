@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import func, exists
 from flask_restful import Resource, reqparse
 from src.extensions import db
 from src.models import User, Group, UserGroup, Post
@@ -10,47 +10,85 @@ parser.add_argument(
 
 
 class GroupResource(Resource):
-    def get(self, group_id):
+    def get(self, group_id, user_id):
         """
-        列出指定群組中的所有貼文和成員。
+        列出指定群組中的所有貼文和成員，並標記使用者是否已有貼文。
         """
         target_group = Group.query.filter_by(group_id=group_id).first()
         if not target_group:
             return {"message": "Group not found."}, 404
 
+        print("Group")
         members = (
-            db.session.query(User.user_id, User.name)
+            db.session.query(
+                User.user_id,
+                User.name,
+                func.coalesce(func.max(Post.created_time), None).label(
+                    "last_post_time"
+                ),
+            )
             .join(UserGroup, User.user_id == UserGroup.user_id)
+            .outerjoin(
+                Post, (Post.user_id == User.user_id) & (Post.group_id == group_id)
+            )
             .filter(UserGroup.group_id == group_id)
+            .group_by(User.user_id)
             .all()
         )
 
+        print("members: ", members)
         posts = (
-            db.session.query(Post.post_id, Post.title, Post.content, Post.created_time)
+            db.session.query(
+                Post.post_id,
+                Post.content,
+                Post.created_time,
+                User.name.label("user_name"),
+            )
+            .join(User, User.user_id == Post.user_id)
             .filter(Post.group_id == group_id)
             .order_by(Post.created_time.desc())
             .all()
         )
 
+        print("posts: ", posts)
+
+        user_has_posts = db.session.query(
+            exists().where(Post.group_id == group_id).where(Post.user_id == user_id)
+        ).scalar()
+
+        print("user_has_posts: ", user_has_posts)
+
         members_list = [
-            {"user_id": member.user_id, "name": member.name} for member in members
+            {
+                "user_id": member.user_id,
+                "name": member.name,
+                "last_post_time": (
+                    member.last_post_time.isoformat() if member.last_post_time else ""
+                ),
+            }
+            for member in members
         ]
+
+        print("members_list: ", members_list)
 
         posts_list = [
             {
                 "post_id": post.post_id,
-                "title": post.title,
+                "user_name": post.user_name,
                 "content": post.content,
                 "created_time": post.created_time.isoformat(),
             }
             for post in posts
         ]
 
+        print("posts_list: ", posts_list)
+
         return {
             "group_id": group_id,
             "group_name": target_group.group_name,
             "posts": posts_list,
             "members": members_list,
+            "has_user_posts": user_has_posts,
         }, 200
 
     def post(self, group_id, user_id):

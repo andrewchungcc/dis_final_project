@@ -55,38 +55,34 @@ def calculate_dynamic_score(group_id):
 
 
 class PostResource(Resource):
-    def post(self, group_id):
+    def post(self, group_id, user_id):
         """
         在指定組別新增一個 post，並回傳計算後的分數。
         """
         args = parser.parse_args()
-        user_id = g.user_id  # 從 g 獲取當前用戶 id
 
-        # 驗證用戶是否存在
         user = User.query.get_or_404(user_id)
+        Group.query.get_or_404(group_id)
 
-        # 驗證群組是否存在
-        group = Group.query.get_or_404(group_id)
-
-        # 驗證用戶是否屬於該群組
         user_in_group = UserGroup.query.filter_by(
             user_id=user_id, group_id=group_id
         ).first()
         if not user_in_group:
             return {"message": "User is not a member of this group."}, 403
 
-        # 新增 post
         new_post = Post(user_id=user_id, group_id=group_id, content=args["content"])
         db.session.add(new_post)
         db.session.commit()
 
-        # 計算分數
         score = calculate_dynamic_score(group_id)
+
+        post_dict = new_post.to_dict()
+        post_dict["user_name"] = user.name
 
         return {
             "message": "Post created successfully.",
-            "post": new_post.to_dict(),
-            "score": score,  # 回傳計算的分數
+            "post": post_dict,
+            "score": score,
         }, 200
 
 
