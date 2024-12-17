@@ -38,9 +38,6 @@ class GroupListResource(Resource):
         """
         列出所有群組，依照創建時間倒序排序，並標記該使用者是否已加入。
         """
-        args = parser.parse_args()
-        user_id = args["user_id"]
-
         # 查詢所有群組及會員數
         groups_with_count = (
             db.session.query(
