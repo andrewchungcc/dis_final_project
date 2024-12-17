@@ -9,40 +9,50 @@ parser.add_argument(
     "content", type=str, required=True, help="Post content is required."
 )
 
+
 # 計算積分的函數
 def calculate_dynamic_score(group_id):
     """
     根據公式計算指定群組的分數，考慮會員多隊伍參與的權重：
-    Score = T / (α * (S + 1)) + β * N
+    Score = T / (alpha * (S + 1)) + beta * N
     """
-    α = 1  # 可調整參數
-    β = 0.01  # 可調整參數
+    alpha = 1
+    beta = 0.01
 
-    # 1. 計算團隊人數 T（按動態權重調整）
     user_groups = UserGroup.query.filter_by(group_id=group_id).all()
     total_weighted_users = 0
     for user_group in user_groups:
         user_teams = UserGroup.query.filter_by(user_id=user_group.user_id).count()
-        total_weighted_users += 1 / user_teams  # 根據團隊數量調整權重
+        total_weighted_users += 0 if user_teams == 0 else 1 / user_teams
 
     T = total_weighted_users
 
-    # 2. 計算團隊完成打卡的時間差 S
-    first_post = Post.query.filter_by(group_id=group_id).order_by(Post.created_time.asc()).first()
-    last_post = Post.query.filter_by(group_id=group_id).order_by(Post.created_time.desc()).first()
+    first_post = (
+        Post.query.filter_by(group_id=group_id)
+        .order_by(Post.created_time.asc())
+        .first()
+    )
+    last_post = (
+        Post.query.filter_by(group_id=group_id)
+        .order_by(Post.created_time.desc())
+        .first()
+    )
     if first_post and last_post:
         S = (last_post.created_time - first_post.created_time).total_seconds()
     else:
-        S = 0  # 如果沒有 Post，設 S 為 0
+        S = 0
 
-    # 3. 計算團隊內新會員數量 N
-    N = UserGroup.query.filter_by(group_id=group_id).filter(
-        UserGroup.joined_time >= datetime.now().replace(hour=0, minute=0, second=0)
-    ).count()
+    N = (
+        UserGroup.query.filter_by(group_id=group_id)
+        .filter(
+            UserGroup.joined_time >= datetime.now().replace(hour=0, minute=0, second=0)
+        )
+        .count()
+    )
 
-    # 計算分數
-    score = T / (α * (S + 1)) + β * N
+    score = T / (alpha * (S + 1)) + beta * N
     return score
+
 
 class PostResource(Resource):
     def post(self, group_id):
@@ -78,7 +88,7 @@ class PostResource(Resource):
             "post": new_post.to_dict(),
             "score": score,  # 回傳計算的分數
         }, 200
-        
+
 
 class PostListResource(Resource):
     def get(self, group_id):
