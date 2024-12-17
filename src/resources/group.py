@@ -1,6 +1,7 @@
+from sqlalchemy import func
 from flask_restful import Resource, reqparse
 from src.extensions import db
-from src.models import Group
+from src.models import Group, UserGroup
 
 parser = reqparse.RequestParser()
 parser.add_argument(
@@ -37,5 +38,28 @@ class GroupListResource(Resource):
         """
         列出所有群組，依照創建時間倒序排序。
         """
-        groups = Group.query.order_by(Group.created_time.desc()).all()
-        return [group.to_dict() for group in groups], 200
+        groups_with_count = (
+            db.session.query(
+                Group.group_id,
+                Group.group_name,
+                Group.created_time,
+                func.count(UserGroup.user_id).label("member_count"),
+            )
+            .outerjoin(UserGroup, Group.group_id == UserGroup.group_id)
+            .group_by(Group.group_id, Group.group_name, Group.created_time)
+            .order_by(Group.created_time.desc())
+            .all()
+        )
+
+        # 將結果轉為字典形式
+        result = [
+            {
+                "group_id": group.group_id,
+                "group_name": group.group_name,
+                "created_time": group.created_time.isoformat(),
+                "member_count": group.member_count,
+            }
+            for group in groups_with_count
+        ]
+
+        return result, 200
