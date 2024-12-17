@@ -6,7 +6,7 @@ from flask_restful import Api
 import firebase_admin
 from firebase_admin import credentials, auth
 from config import Config
-from .extensions import db, migrate
+from .extensions import db
 from src.resources.user import UserResource
 from src.resources.post import PostResource, PostListResource
 from src.resources.group import GroupResource, GroupListResource
