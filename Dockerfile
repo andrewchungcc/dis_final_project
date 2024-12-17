@@ -15,4 +15,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app", "--workers=1", "--timeout=5", "--log-level=debug", "--access-logfile=-", "--error-logfile=-"]
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app", "--workers=1", "--timeout=2", "--log-level=debug", "--access-logfile=-", "--error-logfile=-"]

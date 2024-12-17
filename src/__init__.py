@@ -36,7 +36,7 @@ def create_app(config_class=Config):
     api.add_resource(LoginResource, "/api/login")
     api.add_resource(PostResource, "/api/post/<int:group_id>")
     api.add_resource(PostListResource, "/api/posts/<int:group_id>")
-    api.add_resource(GroupResource, "/api/group")
+    api.add_resource(GroupResource, "/api/group/<int:group_id>/<string:user_id>")
     api.add_resource(GroupListResource, "/api/groups/<string:user_id>")
     api.add_resource(UserGroupResource, "/api/usergroup")
 
