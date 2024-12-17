@@ -7,7 +7,7 @@ import firebase_admin
 from firebase_admin import credentials, auth
 from config import Config
 from .extensions import db
-from src.resources.user import UserResource
+from src.resources.user import UserResource, LoginResource
 from src.resources.post import PostResource, PostListResource
 from src.resources.group import GroupResource, GroupListResource
 
@@ -32,10 +32,11 @@ def create_app(config_class=Config):
 
     api = Api(app)
     api.add_resource(UserResource, "/api/user")
+    api.add_resource(LoginResource, "/api/login")
     api.add_resource(PostResource, "/api/post/<int:group_id>")
     api.add_resource(PostListResource, "/api/posts/<int:group_id>")
     api.add_resource(GroupResource, "/api/group")
-    api.add_resource(GroupListResource, "/api/groups")
+    api.add_resource(GroupListResource, "/api/groups/<string:user_id")
 
     # @app.before_request
     # def authenticate_user():

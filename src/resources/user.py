@@ -1,13 +1,18 @@
 import secrets
 from flask import g
 from flask_restful import Resource, reqparse
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from src.extensions import db
 from src.models import User
 
-parser = reqparse.RequestParser()
-parser.add_argument("account", type=str, help="Account of the user", required=True)
-parser.add_argument("name", type=str, help="Name of the user", required=True)
+login_parser = reqparse.RequestParser()
+login_parser.add_argument("account", type=str, help="Account is required.", required=True, )
+login_parser.add_argument("password", type=str, help="Password is required.", required=True, )
+
+register_parser = reqparse.RequestParser()
+register_parser.add_argument("account", type=str, help="Account of the user", required=True)
+register_parser.add_argument("name", type=str, help="Name of the user", required=True)
+register_parser.add_argument("password", type=str, help="Password of the user", required=True)
 
 
 class UserResource(Resource):
@@ -18,7 +23,7 @@ class UserResource(Resource):
         return user.to_dict()
 
     def post(self):
-        args = parser.parse_args()
+        args = register_parser.parse_args()
         account = args["account"]
         name = args["name"]
         password = args["password"]
@@ -34,3 +39,27 @@ class UserResource(Resource):
         db.session.commit()
 
         return new_user.to_dict(), 200
+
+class LoginResource(Resource):
+    def post(self):
+        """
+        登入功能
+        """
+        args = login_parser.parse_args()
+        account = args["account"]
+        password = args["password"]
+
+        # 檢查帳號是否存在
+        user = User.query.filter_by(account=account).first()
+        if not user:
+            return {"message": "Invalid account or password."}, 401
+
+        # 驗證密碼
+        if not check_password_hash(user.password, password):
+            return {"message": "Invalid account or password."}, 401
+
+        # 登入成功，回傳使用者資訊
+        return {
+            "message": "Login successful.",
+            "user": user.to_dict()
+        }, 200
