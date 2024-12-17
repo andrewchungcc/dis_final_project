@@ -10,7 +10,7 @@ from .extensions import db
 from src.resources.user import UserResource, LoginResource
 from src.resources.post import PostResource, PostListResource
 from src.resources.group import GroupResource, GroupListResource
-
+from src.resources.userGroup import UserGroupResource
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -37,6 +37,7 @@ def create_app(config_class=Config):
     api.add_resource(PostListResource, "/api/posts/<int:group_id>")
     api.add_resource(GroupResource, "/api/group")
     api.add_resource(GroupListResource, "/api/groups/<string:user_id")
+    api.add_resource(UserGroupResource, "/api/usergroup")
 
     # @app.before_request
     # def authenticate_user():
