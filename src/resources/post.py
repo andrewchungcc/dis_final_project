@@ -1,3 +1,4 @@
+from flask_socketio import emit
 from sqlalchemy import func, exists
 from flask import g
 from flask_restful import Resource, reqparse
@@ -89,6 +90,11 @@ class PostResource(Resource):
         db.session.commit()
 
         score = calculate_dynamic_score(group_id)
+        emit(
+            "score_update",
+            {"group_id": group_id, "score": score},
+            broadcast=True,
+        )
 
         post_dict = new_post.to_dict()
         post_dict["user_name"] = user.name

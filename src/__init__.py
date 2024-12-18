@@ -3,6 +3,7 @@ import logging
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 from flask_restful import Api
+from flask_socketio import SocketIO
 import firebase_admin
 from firebase_admin import credentials, auth
 from config import Config
@@ -11,6 +12,8 @@ from src.resources.user import UserResource, LoginResource
 from src.resources.post import PostResource, PostListResource
 from src.resources.group import GroupResource, GroupListResource
 from src.resources.userGroup import UserGroupResource
+
+socketio = SocketIO(cors_allowed_origins="*")
 
 
 def create_app(config_class=Config):
@@ -26,6 +29,7 @@ def create_app(config_class=Config):
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     db.init_app(app)
+    socketio.init_app(app)
 
     # cred = credentials.Certificate(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
     # firebase_admin.initialize_app(cred)

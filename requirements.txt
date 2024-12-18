@@ -2,6 +2,7 @@ Flask
 gunicorn
 Flask-Cors
 Flask-RESTful
+Flask-SocketIO
 Flask-SQLAlchemy
 firebase_admin
 python-dotenv
