@@ -92,7 +92,7 @@ class PostResource(Resource):
         score = calculate_dynamic_score(group_id)
         emit(
             "score_update",
-            {"group_id": group_id, "score": score},
+            {"group_id": group_id, "group_name": group.group_name, "score": score},
             namespace="/",
             broadcast=True,
         )
