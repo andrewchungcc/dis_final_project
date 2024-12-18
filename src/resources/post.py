@@ -1,3 +1,4 @@
+from sqlalchemy import func, exists
 from flask import g
 from flask_restful import Resource, reqparse
 from src.extensions import db
@@ -71,12 +72,14 @@ class PostResource(Resource):
         ).first()
         if not user_in_group:
             return {"message": "User is not a member of this group."}, 403
-        
-         # 排除同一個人短時間內多次打卡
+
+        # 排除同一個人短時間內多次打卡
         time_limit = timedelta(minutes=5)  # 設定 5 分鐘內不能重複打卡
-        last_post = Post.query.filter_by(user_id=user_id, group_id=group_id)\
-                              .order_by(Post.created_time.desc())\
-                              .first()
+        last_post = (
+            Post.query.filter_by(user_id=user_id, group_id=group_id)
+            .order_by(Post.created_time.desc())
+            .first()
+        )
 
         if last_post and datetime.now() - last_post.created_time < time_limit:
             return {"message": "You cannot post again within 5 minutes."}, 403
@@ -98,25 +101,83 @@ class PostResource(Resource):
 
 
 class PostListResource(Resource):
-    def get(self, group_id):
+    def get(self, group_id, user_id):
         """
-        取得指定組別的所有 posts。
+        列出指定群組中的所有貼文和成員，並標記使用者是否已有貼文。
         """
-        user_id = g.user_id  # 從 g 獲取當前用戶 id
+        target_group = Group.query.filter_by(group_id=group_id).first()
+        if not target_group:
+            return {"message": "Group not found."}, 404
 
-        # 驗證用戶是否存在
-        user = User.query.get_or_404(user_id)
+        print("Group")
+        members = (
+            db.session.query(
+                User.user_id,
+                User.name,
+                func.coalesce(func.max(Post.created_time), None).label(
+                    "last_post_time"
+                ),
+            )
+            .join(UserGroup, User.user_id == UserGroup.user_id)
+            .outerjoin(
+                Post, (Post.user_id == User.user_id) & (Post.group_id == group_id)
+            )
+            .filter(UserGroup.group_id == group_id)
+            .group_by(User.user_id)
+            .all()
+        )
 
-        # 驗證群組是否存在
-        group = Group.query.get_or_404(group_id)
+        print("members: ", members)
+        posts = (
+            db.session.query(
+                Post.post_id,
+                Post.content,
+                Post.created_time,
+                User.name.label("user_name"),
+            )
+            .join(User, User.user_id == Post.user_id)
+            .filter(Post.group_id == group_id)
+            .order_by(Post.created_time.desc())
+            .all()
+        )
 
-        # 驗證用戶是否屬於該群組
-        user_in_group = UserGroup.query.filter_by(
-            user_id=user_id, group_id=group_id
-        ).first()
-        if not user_in_group:
-            return {"message": "User is not a member of this group."}, 403
+        print("posts: ", posts)
 
-        # 查詢所有 posts
-        posts = Post.query.filter_by(group_id=group_id).all()
-        return [post.to_dict() for post in posts], 200
+        user_has_posts = db.session.query(
+            exists().where(Post.group_id == group_id).where(Post.user_id == user_id)
+        ).scalar()
+
+        print("user_has_posts: ", user_has_posts)
+
+        members_list = [
+            {
+                "user_id": member.user_id,
+                "name": member.name,
+                "last_post_time": (
+                    member.last_post_time.isoformat() if member.last_post_time else ""
+                ),
+            }
+            for member in members
+        ]
+
+        print("members_list: ", members_list)
+
+        posts_list = [
+            {
+                "post_id": post.post_id,
+                "user_name": post.user_name,
+                "content": post.content,
+                "created_time": post.created_time.isoformat(),
+            }
+            for post in posts
+        ]
+
+        print("posts_list: ", posts_list)
+
+        return {
+            "group_id": group_id,
+            "group_name": target_group.group_name,
+            "posts": posts_list,
+            "members": members_list,
+            "has_user_posts": user_has_posts,
+        }, 200
