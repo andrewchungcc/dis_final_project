@@ -32,7 +32,7 @@ def create_app(config_class=Config):
     # firebase_admin.initialize_app()
 
     api = Api(app)
-    api.add_resource(UserResource, "/api/user")
+    api.add_resource(UserResource, "/api/user", "/api/user/<string:user_id>")
     api.add_resource(LoginResource, "/api/login")
     api.add_resource(PostResource, "/api/post/<int:group_id>/<string:user_id>")
     api.add_resource(PostListResource, "/api/posts/<int:group_id>")

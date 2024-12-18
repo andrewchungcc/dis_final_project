@@ -17,7 +17,7 @@ register_parser.add_argument("password", type=str, help="Password of the user", 
 
 class UserResource(Resource):
     def get(self, user_id):
-        user_id = g.user_id
+        # user_id = g.user_id
         user = User.query.get_or_404(user_id)
 
         return user.to_dict()
@@ -29,7 +29,8 @@ class UserResource(Resource):
         password = args["password"]
 
         user_id = secrets.token_urlsafe(21)
-        hashed_password = generate_password_hash(password)
+        # hashed_password = generate_password_hash(password)
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
 
         new_user = User(
             user_id=user_id, account=account, name=name, password=hashed_password
