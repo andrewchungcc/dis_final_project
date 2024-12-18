@@ -128,3 +128,4 @@ pyrightcache/
 # firebase
 service-account-key.json
 test.txt
+account.json

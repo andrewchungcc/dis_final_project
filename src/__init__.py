@@ -30,20 +30,16 @@ def create_app(config_class=Config):
     db.init_app(app)
     socketio = SocketIO(
         app,
-        logger=True,
-        engineio_logger=True,
         cors_allowed_origins="*",
         async_mode="eventlet",
     )
     socketio.init_app(app)
 
-    # cred = credentials.Certificate(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
-    # firebase_admin.initialize_app(cred)
     # firebase_admin.initialize_app()
 
     api = Api(app)
-    api.add_resource(UserResource, "/api/user", "/api/user/<string:user_id>")
     api.add_resource(LoginResource, "/api/login")
+    api.add_resource(UserResource, "/api/user", "/api/user/<string:user_id>")
     api.add_resource(PostResource, "/api/post/<int:group_id>/<string:user_id>")
     api.add_resource(PostListResource, "/api/posts/<int:group_id>/<string:user_id>")
     api.add_resource(GroupResource, "/api/group/<int:group_id>/<string:user_id>")
@@ -59,10 +55,12 @@ def create_app(config_class=Config):
 
     #             if not auth_header:
     #                 return jsonify({"error": "Unauthorized"}), 401
+    #             else:
+    #                 bearer_token = auth_header.split(" ")[1]
+    #                 decoded_token = auth.verify_id_token(bearer_token)
 
-    #             bearer_token = auth_header.split(" ")[1]
-    #             decoded_token = auth.verify_id_token(bearer_token)
-    #             g.user_id = decoded_token["uid"]
+    #                 g.user_id = decoded_token["uid"]
+    #                 g.user_name = decoded_token["name"]
     #     except Exception as e:
     #         return jsonify({"error": str(e)}), 401
 
