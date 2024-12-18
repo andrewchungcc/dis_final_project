@@ -17,4 +17,4 @@ class LeaderboardResource(Resource):
             groups, key=lambda group: group.group_score, reverse=True
         )
 
-        return [group.to_dict() for group in groups_sorted], 200
+        return [group.to_dict() for group in groups_sorted[:20]], 200
