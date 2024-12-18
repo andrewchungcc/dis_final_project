@@ -166,6 +166,7 @@ class GroupListResource(Resource):
             db.session.query(
                 Group.group_id,
                 Group.group_name,
+                Group.group_score,
                 Group.created_time,
                 func.count(UserGroup.user_id).label("member_count"),
             )
@@ -189,6 +190,7 @@ class GroupListResource(Resource):
             {
                 "group_id": group.group_id,
                 "group_name": group.group_name,
+                "group_score": group.group_score,
                 "created_time": group.created_time.isoformat(),
                 "member_count": group.member_count,
                 "is_joined": group.group_id in joined_group_ids,
