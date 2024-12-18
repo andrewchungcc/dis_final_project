@@ -13,8 +13,6 @@ from src.resources.post import PostResource, PostListResource
 from src.resources.group import GroupResource, GroupListResource
 from src.resources.userGroup import UserGroupResource
 
-socketio = SocketIO(cors_allowed_origins="*")
-
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -29,6 +27,13 @@ def create_app(config_class=Config):
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     db.init_app(app)
+    socketio = SocketIO(
+        app,
+        logger=True,
+        engineio_logger=True,
+        cors_allowed_origins="*",
+        async_mode="eventlet",
+    )
     socketio.init_app(app)
 
     # cred = credentials.Certificate(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
@@ -59,4 +64,4 @@ def create_app(config_class=Config):
     #     except Exception as e:
     #         return jsonify({"error": str(e)}), 401
 
-    return app
+    return app, socketio

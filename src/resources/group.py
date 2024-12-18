@@ -18,7 +18,6 @@ class GroupResource(Resource):
         if not target_group:
             return {"message": "Group not found."}, 404
 
-        print("Group")
         members = (
             db.session.query(
                 User.user_id,
@@ -86,6 +85,7 @@ class GroupResource(Resource):
         return {
             "group_id": group_id,
             "group_name": target_group.group_name,
+            "group_score": target_group.group_score,
             "posts": posts_list,
             "members": members_list,
             "has_user_posts": user_has_posts,
@@ -117,6 +117,7 @@ class GroupResource(Resource):
                 "group": {
                     "group_id": new_group.group_id,
                     "group_name": new_group.group_name,
+                    "group_score": 0,
                     "member_count": 1,
                 },
             }, 200

@@ -11,11 +11,7 @@ class User(db.Model):
     password = db.Column(db.String(100), nullable=False)
 
     def to_dict(self):
-        return {
-            "name": self.name,
-            "account": self.account,
-            "user_id": self.user_id
-        }
+        return {"name": self.name, "account": self.account, "user_id": self.user_id}
 
 
 class Group(db.Model):
@@ -23,12 +19,14 @@ class Group(db.Model):
 
     group_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     group_name = db.Column(db.String(50), nullable=False, unique=True)
+    group_score = db.Column(db.Integer, default=0, nullable=False)
     created_time = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     def to_dict(self):
         return {
             "group_id": self.group_id,
             "group_name": self.group_name,
+            "group_score": self.group_score,
             "created_time": self.created_time.isoformat(),
         }
 

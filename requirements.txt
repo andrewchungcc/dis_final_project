@@ -1,5 +1,6 @@
 Flask
 gunicorn
+eventlet
 Flask-Cors
 Flask-RESTful
 Flask-SocketIO

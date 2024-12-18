@@ -66,7 +66,7 @@ class PostResource(Resource):
         args = parser.parse_args()
 
         user = User.query.get_or_404(user_id)
-        Group.query.get_or_404(group_id)
+        group = Group.query.get_or_404(group_id)
 
         user_in_group = UserGroup.query.filter_by(
             user_id=user_id, group_id=group_id
@@ -96,6 +96,8 @@ class PostResource(Resource):
             namespace="/",
             broadcast=True,
         )
+        group.group_score = score
+        db.session.commit()
 
         post_dict = new_post.to_dict()
         post_dict["user_name"] = user.name
@@ -116,7 +118,6 @@ class PostListResource(Resource):
         if not target_group:
             return {"message": "Group not found."}, 404
 
-        print("Group")
         members = (
             db.session.query(
                 User.user_id,
@@ -134,7 +135,6 @@ class PostListResource(Resource):
             .all()
         )
 
-        print("members: ", members)
         posts = (
             db.session.query(
                 Post.post_id,
@@ -148,13 +148,9 @@ class PostListResource(Resource):
             .all()
         )
 
-        print("posts: ", posts)
-
         user_has_posts = db.session.query(
             exists().where(Post.group_id == group_id).where(Post.user_id == user_id)
         ).scalar()
-
-        print("user_has_posts: ", user_has_posts)
 
         members_list = [
             {
@@ -166,8 +162,6 @@ class PostListResource(Resource):
             }
             for member in members
         ]
-
-        print("members_list: ", members_list)
 
         posts_list = [
             {
@@ -184,6 +178,7 @@ class PostListResource(Resource):
         return {
             "group_id": group_id,
             "group_name": target_group.group_name,
+            "group_score": target_group.group_score,
             "posts": posts_list,
             "members": members_list,
             "has_user_posts": user_has_posts,

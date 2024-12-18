@@ -1,7 +1,7 @@
 import os
-from src import create_app, socketio
+from src import create_app
 
-app = create_app()
+app, socketio = create_app()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
