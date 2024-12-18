@@ -2,7 +2,7 @@ from flask import g
 from flask_restful import Resource, reqparse
 from src.extensions import db
 from src.models import User, Group, Post, UserGroup
-from datetime import datetime
+from datetime import datetime, timedelta
 
 parser = reqparse.RequestParser()
 parser.add_argument(
@@ -51,6 +51,7 @@ def calculate_dynamic_score(group_id):
     )
 
     score = T / (alpha * (S + 1)) + beta * N
+    # print("T:", T, "S:", S, N)
     return score
 
 
@@ -58,6 +59,7 @@ class PostResource(Resource):
     def post(self, group_id, user_id):
         """
         在指定組別新增一個 post，並回傳計算後的分數。
+        排除同一個人短時間內多次打卡的情況。
         """
         args = parser.parse_args()
 
@@ -69,6 +71,15 @@ class PostResource(Resource):
         ).first()
         if not user_in_group:
             return {"message": "User is not a member of this group."}, 403
+        
+         # 排除同一個人短時間內多次打卡
+        time_limit = timedelta(minutes=5)  # 設定 5 分鐘內不能重複打卡
+        last_post = Post.query.filter_by(user_id=user_id, group_id=group_id)\
+                              .order_by(Post.created_time.desc())\
+                              .first()
+
+        if last_post and datetime.now() - last_post.created_time < time_limit:
+            return {"message": "You cannot post again within 5 minutes."}, 403
 
         new_post = Post(user_id=user_id, group_id=group_id, content=args["content"])
         db.session.add(new_post)

@@ -17,7 +17,7 @@ register_parser.add_argument("password", type=str, help="Password of the user", 
 
 class UserResource(Resource):
     def get(self, user_id):
-        # user_id = g.user_id
+        user_id = g.user_id
         user = User.query.get_or_404(user_id)
 
         return user.to_dict()
