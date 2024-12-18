@@ -18,8 +18,8 @@ def calculate_dynamic_score(group_id):
     根據公式計算指定群組的分數，考慮會員多隊伍參與的權重：
     Score = T / (alpha * (S + 1)) + beta * N
     """
-    alpha = 0.0001
-    beta = 3
+    alpha = 0.001
+    beta = 3000
 
     user_groups = UserGroup.query.filter_by(group_id=group_id).all()
     total_weighted_users = 0
