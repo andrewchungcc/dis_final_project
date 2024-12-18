@@ -12,6 +12,7 @@ from src.resources.user import UserResource, LoginResource
 from src.resources.post import PostResource, PostListResource
 from src.resources.group import GroupResource, GroupListResource
 from src.resources.userGroup import UserGroupResource
+from src.resources.leaderboard import LeaderboardResource
 
 
 def create_app(config_class=Config):
@@ -48,6 +49,7 @@ def create_app(config_class=Config):
     api.add_resource(GroupResource, "/api/group/<int:group_id>/<string:user_id>")
     api.add_resource(GroupListResource, "/api/groups/<string:user_id>")
     api.add_resource(UserGroupResource, "/api/usergroup")
+    api.add_resource(LeaderboardResource, "/api/leaderboard")
 
     # @app.before_request
     # def authenticate_user():
