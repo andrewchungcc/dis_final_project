@@ -93,6 +93,7 @@ class PostResource(Resource):
         emit(
             "score_update",
             {"group_id": group_id, "score": score},
+            namespace="/",
             broadcast=True,
         )
 
