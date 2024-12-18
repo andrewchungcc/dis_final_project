@@ -11,7 +11,7 @@ class LeaderboardResource(Resource):
         groups = Group.query.all()
 
         if not groups:
-            return {"message": "No groups found."}, 404
+            return [], 200
 
         groups_sorted = sorted(
             groups, key=lambda group: group.group_score, reverse=True
