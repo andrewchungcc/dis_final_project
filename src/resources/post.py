@@ -18,8 +18,8 @@ def calculate_dynamic_score(group_id):
     根據公式計算指定群組的分數，考慮會員多隊伍參與的權重：
     Score = T / (alpha * (S + 1)) + beta * N
     """
-    alpha = 1
-    beta = 0.01
+    alpha = 0.0001
+    beta = 3
 
     user_groups = UserGroup.query.filter_by(group_id=group_id).all()
     total_weighted_users = 0
@@ -89,19 +89,23 @@ class PostResource(Resource):
         db.session.add(new_post)
         db.session.commit()
 
+        group_score = group.group_score
         score = calculate_dynamic_score(group_id)
-        emit(
-            "score_update",
-            {
-                "group_id": group_id,
-                "group_name": group.group_name,
-                "group_score": score,
-            },
-            namespace="/",
-            broadcast=True,
-        )
-        group.group_score = score
-        db.session.commit()
+        if score > group_score:
+            emit(
+                "score_update",
+                {
+                    "group_id": group_id,
+                    "group_name": group.group_name,
+                    "group_score": score,
+                },
+                namespace="/",
+                broadcast=True,
+            )
+            group.group_score = score
+            db.session.commit()
+        else:
+            score = group_score
 
         post_dict = new_post.to_dict()
         post_dict["user_name"] = user.name
