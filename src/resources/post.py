@@ -53,8 +53,8 @@ def calculate_dynamic_score(group_id):
     )
 
     score = T / (alpha * (S + 1)) + beta * N
-    # print("T:", T, "S:", S, N)
-    return score
+
+    return int(round(score))
 
 
 class PostResource(Resource):
